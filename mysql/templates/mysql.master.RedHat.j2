@@ -1,0 +1,23 @@
+[mysqld]
+default-authentication-plugin=mysql_native_password
+server_id= {{ master_server_id }}
+log-bin
+#binlog-do-db  = {{ db_name }}
+
+relay-log = /var/lib/mysql/mysql-relay-bin
+relay-log-index = /var/lib/mysql/mysql-relay-bin.index
+log-error = /var/lib/mysql/mysql.err
+master-info-file = /var/lib/mysql/mysql-master.info
+relay-log-info-file = /var/lib/mysql/mysql-relay-log.info
+log-bin = /var/lib/mysql/mysql-bin
+
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+[mysqld_safe]
+skip-grant-tables
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+

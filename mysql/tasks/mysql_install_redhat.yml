@@ -1,0 +1,74 @@
+---
+
+- name: Download mysql-8
+  get_url: url=https://repo.mysql.com/mysql80-community-release-el6-3.noarch.rpm dest=/opt/
+
+- name: Installing repo
+  yum: name=/opt/mysql80-community-release-el6-3.noarch.rpm state=present
+  ignore_errors: yes
+
+- name: Disable all the mysql version
+  lineinfile:
+    path: /etc/yum.repos.d/mysql-community.repo
+    regexp: '^enabled=1'
+    line: enabled=0
+
+- name: update yum caсhe
+  command: yum update -y
+
+- name: Installing mysql server
+  yum: 
+    name: "{{ item }}"
+    state: present
+    enablerepo: mysql80-community
+  with_items:
+    - mysql
+    - mysql-server
+#    - mysql-libs
+#    - gcc
+#    - python-devel
+    - MySQL-python27
+    - mysql-community-server
+#    - mysql-devel
+    - libselinux-python
+
+- name: update yum caсhe
+  command: yum update -y
+
+- name: Install Mysql-python
+  pip:  
+    name: MySQL-python
+
+
+    #- name: Add native password plugin
+    #  lineinfile:
+    #  path: /etc/my.cnf
+    # regexp: '[mysqld]'
+    #insertafter: '[mysqld]'
+    #  line: default_authentication_plugin=mysql_native_password
+    #  tags:
+    # - set_password
+
+- shell:  cat /var/log/mysqld.log | awk '/A temporary password/ {print $NF}'
+  register: temporary_password
+  tags:
+    - set_password
+
+- debug:
+    var: temporary_password.stdout_lines
+  tags:
+    - set_password
+
+#- name: Copy master my.cnf file 
+#  template: src=mysql.master.RedHat.j2 dest=/etc/my.cnf force=yes owner=root group=root
+#  when: mysql_repl_role == 'master'
+
+#- name: Copy slave  my.cnf file
+#  template: src=mysql.slave.RedHat.j2 dest=/etc/my.cnf force=yes owner=root group=root
+#  when: mysql_repl_role == 'slave'
+
+- name: Starting and Enabing Mysql service
+  service:
+    name: mysqld
+    state: started
+    enabled: yes
